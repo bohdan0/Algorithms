@@ -332,14 +332,26 @@ end
 # The chance of returning a given index will vary with the value of the element.
 # Probability of i should be the ith element divided by the sum of all elements.
 def weighted_random_index(array)
-  
+
 end
 
 # Given an array, move all zeros to the end.
 # The order of non-zero elements does not matter.
 # Try to accomplish this in O(n) time and O(1) space.
 def move_zeros(array)
+  start_idx = 0
+  end_idx = array.length - 1
+  end_idx -= 1 while array[end_idx].zero?
 
+  while start_idx < end_idx
+    if array[start_idx].zero?
+      array[start_idx], array[end_idx] = array[end_idx], array[start_idx]
+      end_idx -= 1
+    end
+    start_idx += 1
+  end
+
+  array
 end
 
 # Implement the 'look and say' function.
@@ -347,20 +359,54 @@ end
 # The output describes the count of the elements in the input.
 
 def look_and_say(array)
+  # [ctr, el]
+  result = []
+  ctr = 1
+  array.each_index do |idx|
+    if array[idx + 1] == array[idx]
+      ctr += 1
+    else
+      result << [ctr, array[idx]]
+      ctr = 1
+    end
+  end
 
+  result
 end
 
 # I give you a scrambled list of n unique integers between 0 and n.
 # Tell me what number is missing?
 # How could you solve the problem in O(n), and also O(1) space?
 def sum_upon_sums(array)
-
+  sum = (1..array.length).to_a.inject(:+)
+  array.each { |el| sum -= el }
+  sum
 end
 
 # Implement a stack with a max method that returns the maximum value.
 # It should run in O(1) time.
 class MaxStack
 
+  def initialize
+    @store = []
+  end
+
+  def push(el)
+    max = empty? || el > @store.last[-1] ? el : @store.last[-1]
+    @store << [el, max]
+  end
+
+  def pop
+    @store.pop[0]
+  end
+
+  def max
+    @store.last[-1]
+  end
+
+  def empty?
+    @store.empty?
+  end
 end
 
 # Implement a queue using stacks.
@@ -371,6 +417,31 @@ end
 # Prove that your solution accomplishes this.
 class StackQueue
 
+  def initialize
+    @in = MaxStack.new
+    @out = MaxStack.new
+  end
+
+  def enqueue(el)
+    @in.push(el)
+  end
+
+  def dequeue
+    if @out.empty?
+      move_elements
+      dequeue
+    else
+      @out.pop
+    end
+  end
+
+  private
+
+  def move_elements
+    until @in.empty?
+      @out.push(@in.pop)
+    end
+  end
 end
 
 # Take an array, and a window size w.
@@ -381,15 +452,91 @@ end
 # Write a MinMaxStackQueue which tracks both the min and max.
 # Last, use MinMaxStackQueue to solve the problem.
 class MinMaxStack
+  attr_reader :length
 
+  def initialize
+    @store = []
+    @length = 0
+  end
+
+  def push(el)
+    min = empty? || el < @store.last[-2] ? el : @store.last[-2]
+    max = empty? || el > @store.last[-1] ? el : @store.last[-1]
+    @length += 1
+    @store << [el, min, max]
+  end
+
+  def pop
+    @length -= 1
+    @store.pop.first
+  end
+
+  def max
+    @store.last[-1]
+  end
+
+  def min
+    @store.last[-2]
+  end
+
+  def empty?
+    @store.empty?
+  end
 end
 
 class MinMaxStackQueue
+  attr_reader :length
 
+  def initialize
+    @in = MaxStack.new
+    @out = MaxStack.new
+  end
+
+  def enqueue(el)
+    @in.push(el)
+  end
+
+  def dequeue
+    if @out.empty?
+      move_elements
+      dequeue
+    else
+      @out.pop
+    end
+  end
+
+  def min
+    [@in.min, @out.min].min
+  end
+
+  def max
+    [@in.max, @out.max].max
+  end
+
+  private
+
+  def move_elements
+    until @in.empty?
+      @out.push(@in.pop)
+    end
+  end
 end
 
 def windowed_max_range(array, w)
+  idx_start = 0
+  idx_end = idx_start + w - 1
+  result = nil
+  while idx_end < array.length
+    min_max_stack = MinMaxStack.new
+    array[idx_start..idx_end].each { |el| min_max_stack.push(el) }
+    new_max = min_max_stack.max - min_max_stack.min
+    result = new_max if !result || new_max > result
 
+    idx_start += 1
+    idx_end += 1
+  end
+
+  result
 end
 
 # Suppose a hash representing a directory.
