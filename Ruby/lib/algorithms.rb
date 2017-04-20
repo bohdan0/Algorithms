@@ -546,7 +546,20 @@ end
 # Write a function that takes such a hash.
 # Return an array of strings with the path to each file in the hash.
 def file_list(hash)
+  path = []
+  queue = [[hash, '']]
+  until queue.empty?
+    el, current_path = queue.shift
+    el.each do |k, v|
+      if v == true
+        path << current_path + k
+      else
+        queue << [v, current_path + "#{k}/"]
+      end
+    end
+  end
 
+  path
 end
 
 # Assume an array of non-negative integers.
@@ -554,32 +567,57 @@ end
 # Given these two arrays, find which element is missing in the second array.
 # Do this in linear time with constant memory use.
 def find_missing_number(array_one, array_two)
-
+  array_one.reduce(0, :+) - array_two.reduce(0, :+)
 end
 
 # Create a function that takes three strings.
 # Return whether the third is an interleaving of the first two.
 # Interleaving means it contains the same characters and preserves their order.
 def is_shuffle?(string_one, string_two, string_three)
+  until string_three.empty?
+    if string_three[0] == string_one[0]
+      string_one = string_one[1..-1]
+      string_three = string_three[1..-1]
+    elsif string_three[0] == string_two[0]
+      string_two = string_two[1..-1]
+      string_three = string_three[1..-1]
+    else
+      return false
+    end
+  end
 
+  true
 end
 
 # Write a function that takes an integer and returns it in binary form.
 def binary(integer)
-
+  integer.to_s(2)
 end
 
 # Write a recursive function that takes a number and returns its factorial.
-def recursive_factorial(number)
-
+def recursive_factorial(number, res = 1)
+  return res if number <= 1
+  recursive_factorial(number - 1, res * number)
 end
 
 # Write an iterative function that takes a number and returns its factorial.
 def iterative_factorial(number)
-
+  result = 1
+  1.upto(number).each {|n| result *= n}
+  result
 end
 
 # Write a method that takes an array and returns all its permutations.
-def permutations(array)
-  
+def permutations(arr)
+  return [[]] if arr.empty?
+  first = arr.shift
+  prev = permutations(arr)
+  current = []
+  0.upto(prev[0].length).each do |idx|
+    prev.each do |perm|
+      current << perm[0...idx] + [first] + perm[idx..-1]
+    end
+  end
+
+  current
 end
